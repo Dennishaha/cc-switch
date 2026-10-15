@@ -1746,7 +1746,36 @@
     "localProxyRequestOverridesHelp": "Applies to the upstream request after format conversion.",
     "apiFormatHelp": "Pick the protocol the provider supports natively: Anthropic Messages is forwarded as is without conversion; routing converts the other three to Anthropic Messages.",
     "directModeFormatInUse": "This card is in use in direct mode: saving it with this format makes requests fail. Switch to routing or Aggregation first.",
-    "directModeFormatSwitch": "This format doesn't work in direct mode; switch to routing or Aggregation to use this card."
+    "directModeFormatSwitch": "This format doesn't work in direct mode; switch to routing or Aggregation to use this card.",
+    "modelApiFormats": {
+      "title": "Model protocol overrides",
+      "hint": "Choose a protocol for each final upstream model ID. Other models use the default protocol. Overrides share the base URL and API key and require local routing.",
+      "fullUrl": "Full endpoint URLs cannot be combined with model protocol overrides. Turn off full URL mode or remove the overrides.",
+      "model": "Model ID",
+      "protocol": "Upstream protocol",
+      "remove": "Remove override",
+      "add": "Add model protocol",
+      "missingModel": "Enter the model ID for this protocol.",
+      "missingProtocol": "Select an upstream protocol for this model.",
+      "duplicate": "Each model can have only one protocol override ([1M] is ignored).",
+      "invalidMaxOutput": "Output token limit must be a positive safe integer.",
+      "modelOverrideConflict": "Model protocol overrides cannot be combined with a shared request-body model override."
+    },
+    "modelApiOptions": {
+      "title": "Upstream settings for this model",
+      "hint": "Unset fields inherit provider defaults. These settings control requests to the supplier, not the Codex client protocol. Thinking levels still come from the model catalog. Shared request-body/header overrides apply last to every model.",
+      "inherit": "Inherit provider default",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "auth": "Messages authentication header",
+      "maxOutput": "Messages output token limit (Codex bridge)",
+      "thinking": "Chat supports thinking",
+      "effort": "Chat supports effort",
+      "thinkingParam": "Thinking parameter",
+      "effortParam": "Effort parameter",
+      "effortMode": "Effort value mapping",
+      "native": "No additional settings in this version; existing protocol conversion rules apply."
+    }
   },
   "copilot": {
     "authSection": "GitHub Copilot Authentication",

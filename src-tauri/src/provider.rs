@@ -452,6 +452,18 @@ pub struct CodexChatReasoningConfig {
     pub effort_levels: Option<Vec<String>>,
 }
 
+/// Optional per-model upstream settings. Missing fields inherit provider defaults.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelApiOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_key_field: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_output_tokens: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub codex_chat_reasoning: Option<CodexChatReasoningConfig>,
+}
+
 /// Local proxy request overrides applied after route/protocol transforms.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LocalProxyRequestOverrides {
@@ -523,6 +535,11 @@ pub struct ProviderMeta {
     /// - "openai_responses": OpenAI Responses API 格式，需要转换
     #[serde(rename = "apiFormat", skip_serializing_if = "Option::is_none")]
     pub api_format: Option<String>,
+    /// Per-model local proxy protocol overrides. Unknown values survive round trips.
+    #[serde(rename = "modelApiFormats", skip_serializing_if = "Option::is_none")]
+    pub model_api_formats: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "modelApiOptions", skip_serializing_if = "Option::is_none")]
+    pub model_api_options: Option<std::collections::HashMap<String, ModelApiOptions>>,
     /// Codex Copilot only: absent or auto prefers advertised Responses, then Chat.
     /// Legacy `apiFormat` does not imply an explicit Copilot protocol override.
     #[serde(

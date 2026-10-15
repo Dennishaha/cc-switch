@@ -794,6 +794,26 @@ impl ProviderAdapter for ClaudeAdapter {
 
         let key = self.extract_key(provider)?;
 
+        // Model selection creates a request-local metadata view. Honor its
+        // Messages header choice while keeping the same credential source.
+        if super::model_api_format::has_model_api_formats(provider)
+            && self.get_api_format(provider) == "anthropic"
+        {
+            match provider
+                .meta
+                .as_ref()
+                .and_then(|meta| meta.api_key_field.as_deref())
+            {
+                Some("ANTHROPIC_API_KEY") => {
+                    return Some(AuthInfo::new(key, AuthStrategy::Anthropic))
+                }
+                Some("ANTHROPIC_AUTH_TOKEN") => {
+                    return Some(AuthInfo::new(key, AuthStrategy::ClaudeAuth))
+                }
+                _ => {}
+            }
+        }
+
         match provider_type {
             ProviderType::GeminiCli => {
                 // Parse stored OAuth JSON and only attach access_token when

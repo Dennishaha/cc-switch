@@ -1746,7 +1746,36 @@
     "localProxyRequestOverridesHelp": "作用于格式转换后发给上游的请求。",
     "apiFormatHelp": "看供应商原生支持哪种协议：Anthropic Messages 原样转发、不转换格式；其余三种由路由转成 Anthropic Messages。",
     "directModeFormatInUse": "这张卡正在直连使用：改成这种格式后保存，请求会失败。请先切到路由或聚合。",
-    "directModeFormatSwitch": "直连模式下用不了这种格式，切到路由或聚合后才能用这张卡。"
+    "directModeFormatSwitch": "直连模式下用不了这种格式，切到路由或聚合后才能用这张卡。",
+    "modelApiFormats": {
+      "title": "模型协议覆盖",
+      "hint": "按最终上游模型 ID 选择协议；未配置的模型沿用默认协议。地址和 API Key 共用，需要开启本地路由。",
+      "fullUrl": "完整端点 URL 与模型协议覆盖不能同时使用，请关闭完整 URL 模式或删除覆盖配置。",
+      "model": "模型 ID",
+      "protocol": "上游协议",
+      "remove": "删除覆盖",
+      "add": "新增模型协议",
+      "missingModel": "请选择协议对应的模型 ID。",
+      "missingProtocol": "请选择模型的上游协议。",
+      "duplicate": "同一模型只能配置一次协议（[1M] 不区分）。",
+      "invalidMaxOutput": "输出 Token 上限必须是正整数，且不能超出安全整数范围。",
+      "modelOverrideConflict": "模型协议覆盖不能与通用请求体中的 model 覆盖同时使用。"
+    },
+    "modelApiOptions": {
+      "title": "该模型的上游参数",
+      "hint": "未设置项继承供应商默认值。这些设置控制发给供应商的请求，不改变 Codex 客户端协议。思考档位仍来自模型目录。通用请求体/请求头覆盖最后应用于所有模型。",
+      "inherit": "继承供应商默认值",
+      "enabled": "支持",
+      "disabled": "不支持",
+      "auth": "Messages 认证头",
+      "maxOutput": "Messages 输出 Token 上限（Codex 转换）",
+      "thinking": "Chat 支持思考模式",
+      "effort": "Chat 支持思考等级",
+      "thinkingParam": "思考参数名",
+      "effortParam": "等级参数名",
+      "effortMode": "等级值映射",
+      "native": "首版无额外参数设置，沿用现有协议转换规则。"
+    }
   },
   "copilot": {
     "authSection": "GitHub Copilot 认证",

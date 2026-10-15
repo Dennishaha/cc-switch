@@ -1,3 +1,8 @@
+import {
+  buildModelApiFormats,
+  modelApiFormatRows,
+  type ModelApiFormatRow,
+} from "./ModelApiFormatsField";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -397,6 +402,14 @@ function ProviderFormFull({
   const [endpointAutoSelect, setEndpointAutoSelect] = useState<boolean>(
     () => initialData?.meta?.endpointAutoSelect ?? true,
   );
+  const [modelProtocolRows, setModelProtocolRows] = useState<
+    ModelApiFormatRow[]
+  >(() =>
+    modelApiFormatRows(
+      initialData?.meta?.modelApiFormats,
+      initialData?.meta?.modelApiOptions,
+    ),
+  );
   const supportsFullUrl = appId === "claude" || appId === "codex";
   const [localIsFullUrl, setLocalIsFullUrl] = useState<boolean>(() => {
     if (!supportsFullUrl) return false;
@@ -422,6 +435,12 @@ function ProviderFormFull({
     if (!initialData) {
       setDraftCustomEndpoints([]);
     }
+    setModelProtocolRows(
+      modelApiFormatRows(
+        initialData?.meta?.modelApiFormats,
+        initialData?.meta?.modelApiOptions,
+      ),
+    );
     setEndpointAutoSelect(initialData?.meta?.endpointAutoSelect ?? true);
     setLocalIsFullUrl(
       supportsFullUrl ? (initialData?.meta?.isFullUrl ?? false) : false,
@@ -1253,7 +1272,44 @@ function ProviderFormFull({
   const shouldApplyLocalProxyRequestOverrides =
     (appId === "claude" || appId === "codex") && category !== "official";
 
+  const canEditModelProtocols =
+    (appId === "claude" || appId === "codex") &&
+    category !== "official" &&
+    category !== "cloud_provider" &&
+    !hasExistingCodexOfficialIdentity &&
+    !isCodexOfficialProvider &&
+    !isCopilotProvider &&
+    !isClaudeCodexOauthProvider &&
+    !isCodexOfficialManagedOauthBound &&
+    !isXaiOauthProvider;
+  const modelProtocolEditor = canEditModelProtocols
+    ? {
+        client: appId as "claude" | "codex",
+        rows: modelProtocolRows,
+        onChange: setModelProtocolRows,
+        isFullUrl: localIsFullUrl,
+      }
+    : undefined;
+  const hasChatProtocol =
+    isCodexChatFormat ||
+    (canEditModelProtocols &&
+      modelProtocolRows.some((row) => row.format === "openai_chat"));
+  const hasAnthropicProtocol =
+    localCodexApiFormat === "anthropic" ||
+    (canEditModelProtocols &&
+      modelProtocolRows.some((row) => row.format === "anthropic"));
+
+  const modelProtocols = canEditModelProtocols
+    ? buildModelApiFormats(modelProtocolRows)
+    : {};
   const handleSubmit = async (values: ProviderFormData) => {
+    if (modelProtocols.error || (modelProtocols.formats && localIsFullUrl)) {
+      toast.error(
+        t(`providerForm.modelApiFormats.${modelProtocols.error ?? "fullUrl"}`),
+      );
+      return;
+    }
+
     const overridesResult = shouldApplyLocalProxyRequestOverrides
       ? buildLocalProxyRequestOverrides(
           localProxyHeadersOverride,
@@ -1267,6 +1323,18 @@ function ProviderFormFull({
           error: overridesResult.error,
         }),
       );
+      return;
+    }
+
+    if (
+      modelProtocols.formats &&
+      overridesResult.overrides?.body &&
+      Object.prototype.hasOwnProperty.call(
+        overridesResult.overrides.body,
+        "model",
+      )
+    ) {
+      toast.error(t("providerForm.modelApiFormats.modelOverrideConflict"));
       return;
     }
 
@@ -1926,13 +1994,13 @@ function ProviderFormFull({
           : undefined,
       codexFastMode: isClaudeCodexOauthProvider ? codexFastMode : undefined,
       codexChatReasoning:
-        appId === "codex" && category !== "official" && isCodexChatFormat
+        appId === "codex" && category !== "official" && hasChatProtocol
           ? normalizeCodexChatReasoningForSave(codexChatReasoning)
           : undefined,
       promptCacheRouting:
         appId === "codex" &&
         category !== "official" &&
-        isCodexChatFormat &&
+        hasChatProtocol &&
         promptCacheRouting !== "auto"
           ? promptCacheRouting
           : undefined,
@@ -1943,6 +2011,8 @@ function ProviderFormFull({
       localProxyRequestOverrides: shouldApplyLocalProxyRequestOverrides
         ? overridesResult.overrides
         : undefined,
+      modelApiFormats: modelProtocols.formats,
+      modelApiOptions: modelProtocols.options,
       apiFormat:
         appId === "claude" && category !== "official"
           ? isXaiOauthProvider
@@ -1966,7 +2036,7 @@ function ProviderFormFull({
           ? localApiKeyField
           : appId === "codex" &&
               category !== "official" &&
-              localCodexApiFormat === "anthropic" &&
+              hasAnthropicProtocol &&
               localCodexAnthropicAuthField !== "ANTHROPIC_AUTH_TOKEN"
             ? localCodexAnthropicAuthField
             : undefined,
@@ -1974,7 +2044,7 @@ function ProviderFormFull({
       impersonateClaudeCode:
         appId === "codex" &&
         category !== "official" &&
-        localCodexApiFormat === "anthropic" &&
+        hasAnthropicProtocol &&
         localCodexImpersonateClaudeCode
           ? true
           : undefined,
@@ -1982,7 +2052,7 @@ function ProviderFormFull({
       maxOutputTokens:
         appId === "codex" &&
         category !== "official" &&
-        localCodexApiFormat === "anthropic" &&
+        hasAnthropicProtocol &&
         localCodexMaxOutputTokens.trim() !== "" &&
         Number(localCodexMaxOutputTokens) > 0
           ? Number(localCodexMaxOutputTokens)
@@ -2114,6 +2184,7 @@ function ProviderFormFull({
   });
 
   const handlePresetChange = (value: string) => {
+    setModelProtocolRows([]);
     setSelectedPresetId(value);
     // Stack 模型是这家自己的：换预设后回到跟着新预设的模型映射。
     setClaudeStackRows(null);
@@ -2612,6 +2683,7 @@ function ProviderFormFull({
               subagentModel={subagentModel}
               onModelChange={handleModelChange}
               speedTestEndpoints={speedTestEndpoints}
+              modelApiFormatsEditor={modelProtocolEditor}
               apiFormat={localApiFormat}
               onApiFormatChange={handleApiFormatChange}
               apiKeyField={localApiKeyField}
@@ -2692,6 +2764,7 @@ function ProviderFormFull({
               onSubagentReasoningEffortChange={
                 handleCodexSubagentReasoningEffortChange
               }
+              modelApiFormatsEditor={modelProtocolEditor}
               apiFormat={localCodexApiFormat}
               onApiFormatChange={handleCodexApiFormatChange}
               copilotApiFormat={effectiveCodexCopilotApiFormat}

@@ -1746,7 +1746,36 @@
     "localProxyRequestOverridesHelp": "形式変換後に上流へ送るリクエストに適用されます。",
     "apiFormatHelp": "プロバイダーがネイティブ対応するプロトコルを選びます。Anthropic Messages はそのまま転送して変換なし、他の三つはルーティングが Anthropic Messages に変換します。",
     "directModeFormatInUse": "このカードは直結で使用中です。この形式で保存するとリクエストが失敗します。先にルーティングか集約に切り替えてください。",
-    "directModeFormatSwitch": "この形式は直結モードでは使えません。ルーティングか集約に切り替えるとこのカードを使えます。"
+    "directModeFormatSwitch": "この形式は直結モードでは使えません。ルーティングか集約に切り替えるとこのカードを使えます。",
+    "modelApiFormats": {
+      "title": "モデル別プロトコル",
+      "hint": "最終的な上流モデル ID ごとにプロトコルを選択します。未設定のモデルは既定値を使います。URL と API キーを共有し、ローカルルーティングが必要です。",
+      "fullUrl": "完全なエンドポイント URL とモデル別プロトコルは併用できません。完全 URL モードを無効にするか、設定を削除してください。",
+      "model": "モデル ID",
+      "protocol": "上流プロトコル",
+      "remove": "設定を削除",
+      "add": "モデル別プロトコルを追加",
+      "missingModel": "このプロトコルのモデル ID を入力してください。",
+      "missingProtocol": "モデルの上流プロトコルを選択してください。",
+      "duplicate": "各モデルに設定できるプロトコルは一つです（[1M] は無視されます）。",
+      "invalidMaxOutput": "出力トークン上限は安全な範囲の正の整数にしてください。",
+      "modelOverrideConflict": "モデル別プロトコルと共通本文の model 上書きは併用できません。"
+    },
+    "modelApiOptions": {
+      "title": "このモデルの上流設定",
+      "hint": "未設定項目はプロバイダーの既定値を継承します。送信先の設定であり、Codex のプロトコルは変更しません。推論レベルはモデルカタログを使用します。共通の本文・ヘッダー上書きは全モデルに最後に適用されます。",
+      "inherit": "プロバイダーの既定値を継承",
+      "enabled": "対応",
+      "disabled": "非対応",
+      "auth": "Messages 認証ヘッダー",
+      "maxOutput": "Messages 出力トークン上限（Codex 変換）",
+      "thinking": "Chat の推論対応",
+      "effort": "Chat の推論レベル対応",
+      "thinkingParam": "推論パラメーター",
+      "effortParam": "レベルパラメーター",
+      "effortMode": "レベル値の変換",
+      "native": "初版では追加設定はなく、既存の変換規則を使用します。"
+    }
   },
   "copilot": {
     "authSection": "GitHub Copilot 認証",

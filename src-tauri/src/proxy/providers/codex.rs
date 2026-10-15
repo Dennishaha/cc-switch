@@ -522,7 +522,10 @@ pub fn apply_codex_upstream_model(provider: &Provider, body: &mut JsonValue) -> 
         .map(str::trim)
         .filter(|model| !model.is_empty())
     {
-        if catalog_model_ids.contains(request_model) {
+        if catalog_model_ids.contains(request_model)
+            || (super::model_api_format::has_model_api_formats(provider)
+                && super::model_api_format::model_api_format(provider, request_model).is_some())
+        {
             return Some(request_model.to_string());
         }
     }
@@ -594,15 +597,45 @@ pub fn resolve_codex_chat_reasoning_config(
     provider: &Provider,
     body: &JsonValue,
 ) -> Option<CodexChatReasoningConfig> {
-    let mut config = if let Some(config) = provider
+    let base_config = if let Some(config) = provider
         .meta
         .as_ref()
         .and_then(|meta| meta.codex_chat_reasoning.clone())
     {
-        normalize_codex_chat_reasoning_config(config)
+        Some(config)
     } else {
-        infer_codex_chat_reasoning_config(provider, body)?
+        infer_codex_chat_reasoning_config(provider, body)
     };
+    let model_options = body
+        .get("model")
+        .and_then(JsonValue::as_str)
+        .and_then(|model| {
+            (super::model_api_format::model_api_format(provider, model) == Some("openai_chat"))
+                .then(|| super::model_api_format::options_for_model(provider, model))
+                .flatten()
+        });
+    let override_config = model_options.and_then(|options| options.codex_chat_reasoning.as_ref());
+    if base_config.is_none() && override_config.is_none() {
+        return None;
+    }
+    let mut config = base_config.unwrap_or_default();
+    if let Some(overrides) = override_config {
+        // Overlay individual fields, preserving inferred or explicit provider defaults.
+        macro_rules! inherit {
+            ($field:ident) => {
+                if overrides.$field.is_some() {
+                    config.$field = overrides.$field.clone();
+                }
+            };
+        }
+        inherit!(supports_thinking);
+        inherit!(supports_effort);
+        inherit!(thinking_param);
+        inherit!(effort_param);
+        inherit!(effort_value_mode);
+        inherit!(output_format);
+    }
+    let mut config = normalize_codex_chat_reasoning_config(config);
 
     // zen 的合法 effort 档位是逐模型的（models.dev：glm-5.2 仅 high|max、
     // kimi-k3 仅 max、qwen/glm-5.1 等为 toggle 型无 effort），opencode 客户端
